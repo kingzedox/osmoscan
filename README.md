@@ -2,7 +2,7 @@
 
 A lightning-fast, sleek, and modern transaction viewer for the Osmosis blockchain. Osmoscan allows you to instantly track, parse, and export wallet history with real-time progress indicators and precise block timestamps.
 
-Website url: tryosmoscan.vercel.app
+Website url: https://tryosmoscan.vercel.app
 
 ## Highlights
 
