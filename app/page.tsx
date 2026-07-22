@@ -1,20 +1,10 @@
 'use client';
 
-/**
- * HomePage component
- * 
- * Landing page with hero section, wallet input, and informational content.
- * Features animated background and modern glassmorphism design.
- * 
- * Requirements: 7.5, 8.1, 8.2, 8.3, 8.4, 8.5 - Homepage content and structure
- */
-
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Github, CheckCircle2, FileText, Download, Shield } from 'lucide-react';
+import { Github, FileText, Download, Shield } from 'lucide-react';
 import { WalletInput } from '@/components/ui/wallet-input';
-import { ThemeToggle } from '@/components/ui/theme-toggle';
 
 export default function HomePage() {
   const router = useRouter();
@@ -25,80 +15,108 @@ export default function HomePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-purple-50/30 to-pink-50/30 dark:from-gray-950 dark:via-purple-950/20 dark:to-pink-950/20">
-      {/* Animated background */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+    <div className="min-h-screen bg-[#F9F9F9] relative overflow-hidden flex flex-col font-sans text-[#111111]">
+      {/* Decorative side borders */}
+      <div className="absolute left-0 top-0 bottom-0 w-32 border-r border-gray-200/50 bg-white/40 rounded-r-[100px] pointer-events-none hidden lg:block" />
+      <div className="absolute right-0 top-0 bottom-0 w-32 border-l border-gray-200/50 bg-white/40 rounded-l-[100px] pointer-events-none hidden lg:block" />
+
+      {/* Moving Background Elements (Framer Motion) */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
         <motion.div
-          className="absolute top-1/4 left-1/4 w-96 h-96 bg-purple-300/20 dark:bg-purple-500/10 rounded-full blur-3xl"
+          className="absolute top-[10%] left-[20%] w-[500px] h-[500px] bg-orange-100/30 rounded-full blur-3xl"
           animate={{
-            scale: [1, 1.2, 1],
-            opacity: [0.3, 0.5, 0.3],
+            x: [0, 100, 0],
+            y: [0, -50, 0],
+            scale: [1, 1.1, 1],
           }}
           transition={{
-            duration: 8,
+            duration: 15,
             repeat: Infinity,
             ease: 'easeInOut',
           }}
         />
         <motion.div
-          className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-pink-300/20 dark:bg-pink-500/10 rounded-full blur-3xl"
+          className="absolute bottom-[10%] right-[20%] w-[600px] h-[600px] bg-gray-200/50 rounded-full blur-3xl"
           animate={{
-            scale: [1.2, 1, 1.2],
-            opacity: [0.5, 0.3, 0.5],
+            x: [0, -100, 0],
+            y: [0, 50, 0],
+            scale: [1, 1.2, 1],
           }}
           transition={{
-            duration: 8,
+            duration: 20,
             repeat: Infinity,
             ease: 'easeInOut',
-            delay: 1,
+            delay: 2,
           }}
         />
       </div>
 
+      {/* Floating Decorative Cards */}
+      <motion.div
+        className="absolute top-1/4 right-[10%] w-24 h-24 bg-white rounded-2xl shadow-lg border border-gray-100 flex items-center justify-center hidden xl:flex z-0"
+        animate={{
+          y: [0, -20, 0],
+          rotate: [-5, 5, -5],
+        }}
+        transition={{
+          duration: 8,
+          repeat: Infinity,
+          ease: 'easeInOut',
+        }}
+      >
+        <Shield className="w-8 h-8 text-gray-300" />
+      </motion.div>
+
+      <motion.div
+        className="absolute bottom-1/4 right-[15%] w-20 h-20 bg-white rounded-2xl shadow-lg border border-gray-100 flex items-center justify-center hidden xl:flex z-0"
+        animate={{
+          y: [0, 20, 0],
+          rotate: [10, -10, 10],
+        }}
+        transition={{
+          duration: 10,
+          repeat: Infinity,
+          ease: 'easeInOut',
+          delay: 1,
+        }}
+      >
+        <FileText className="w-6 h-6 text-gray-300" />
+      </motion.div>
+
       {/* Header */}
-      <header className="relative z-10 px-6 py-6">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="flex items-center gap-3"
-          >
-            <svg className="w-10 h-10" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <circle cx="100" cy="100" r="90" fill="url(#gradient)" />
+      <header className="relative z-10 px-6 py-8 flex justify-center">
+        <div className="flex items-center gap-6 bg-white px-4 py-2 rounded-full shadow-sm border border-gray-200">
+          <div className="flex items-center gap-2 pr-6 border-r border-gray-100">
+            <svg className="w-6 h-6" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="100" cy="100" r="90" fill="#111111" />
               <path d="M100 40C66.8629 40 40 66.8629 40 100C40 133.137 66.8629 160 100 160C133.137 160 160 133.137 160 100C160 66.8629 133.137 40 100 40ZM100 140C78.0132 140 60 121.987 60 100C60 78.0132 78.0132 60 100 60C121.987 60 140 78.0132 140 100C140 121.987 121.987 140 100 140Z" fill="white"/>
               <circle cx="100" cy="100" r="25" fill="white"/>
-              <defs>
-                <linearGradient id="gradient" x1="0" y1="0" x2="200" y2="200" gradientUnits="userSpaceOnUse">
-                  <stop stopColor="#A855F7"/>
-                  <stop offset="1" stopColor="#EC4899"/>
-                </linearGradient>
-              </defs>
             </svg>
-            <span className="text-xl font-semibold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-              Osmoscan
-            </span>
-          </motion.div>
-          <ThemeToggle />
+            <span className="font-bold text-lg tracking-tight">Osmoscan</span>
+          </div>
+          <a href="https://x.com/kingzedox0" target="_blank" rel="noopener noreferrer" className="text-sm font-semibold bg-[#111111] text-white px-5 py-2 rounded-full hover:bg-gray-800 transition-colors">
+            Contact me
+          </a>
         </div>
       </header>
 
-      {/* Hero Section */}
-      <main className="relative z-10 px-6 pt-20 pb-32">
-        <div className="max-w-4xl mx-auto text-center space-y-8">
-          {/* Headline */}
+      {/* Main Content */}
+      <main className="relative z-10 flex-1 flex flex-col items-center justify-center px-6 pt-10 pb-20">
+        <div className="max-w-3xl mx-auto w-full text-center space-y-10">
+          
+          {/* Hero Typography */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="space-y-4"
+            className="space-y-2"
           >
-            <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight">
-              <span className="bg-gradient-to-r from-purple-600 via-pink-600 to-purple-600 bg-clip-text text-transparent">
-                Osmoscan
-              </span>
+            <h1 className="text-5xl md:text-7xl lg:text-[5.5rem] font-bold tracking-tight leading-[1.1]">
+              <span className="block text-[#111111]">Explore Osmosis.</span>
+              <span className="block text-[#FF6B00]">Track your taxes.</span>
             </h1>
-            <p className="text-lg md:text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-              View and export Osmosis blockchain transactions in Awaken Tax format
+            <p className="text-lg md:text-xl text-gray-500 mt-6 max-w-xl mx-auto leading-relaxed">
+              Quickly view your Osmosis blockchain transactions and export them directly to an Awaken Tax compatible format.
             </p>
           </motion.div>
 
@@ -107,70 +125,45 @@ export default function HomePage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="max-w-2xl mx-auto"
+            className="max-w-xl mx-auto w-full pt-4"
           >
             <WalletInput
               value={address}
               onChange={setAddress}
               onSubmit={handleSubmit}
-              placeholder="Enter Osmosis wallet address (osmo...)"
+              placeholder="Enter your osmo... address"
             />
           </motion.div>
 
-          {/* Quick Stats */}
+          {/* Action Buttons */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="flex flex-wrap items-center justify-center gap-6 pt-8"
+            className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4 w-full max-w-xs mx-auto sm:max-w-none"
           >
-            {[
-              { icon: Github, text: 'Open Source' },
-              { icon: Shield, text: 'No Registration Required' },
-              { icon: Download, text: 'Export to CSV' },
-              { icon: FileText, text: 'Tax-Ready Format' },
-            ].map((stat, index) => (
-              <div
-                key={index}
-                className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400"
-              >
-                <CheckCircle2 className="w-5 h-5 text-green-500" />
-                <span>{stat.text}</span>
-              </div>
-            ))}
+            <button 
+              onClick={() => handleSubmit(address)}
+              className="w-full sm:w-auto bg-[#FF6B00] text-white px-8 py-3.5 rounded-lg font-semibold hover:bg-[#e66000] transition-colors shadow-sm whitespace-nowrap"
+            >
+              Search Wallet
+            </button>
+            <a 
+              href="https://github.com/kingzedox/osmoscan" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="w-full sm:w-auto justify-center bg-[#111111] text-white px-8 py-3.5 rounded-lg font-semibold hover:bg-gray-900 transition-colors shadow-sm flex items-center gap-2 whitespace-nowrap"
+            >
+              <Github className="w-5 h-5" />
+              <span>View Source</span>
+            </a>
           </motion.div>
         </div>
       </main>
 
       {/* Footer */}
-      <footer className="relative z-10 px-6 py-12 border-t border-gray-200 dark:border-gray-800">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-6">
-              <a
-                href="https://github.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-50 transition-colors"
-              >
-                <Github className="w-5 h-5" />
-                <span className="text-sm">View on GitHub</span>
-              </a>
-            </div>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              CSV exports are formatted for{' '}
-              <a
-                href="https://awaken.tax"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-purple-600 dark:text-purple-400 hover:underline"
-              >
-                Awaken Tax
-              </a>{' '}
-              compatibility
-            </p>
-          </div>
-        </div>
+      <footer className="relative z-10 py-8 text-center text-sm text-gray-400">
+        <p>Compatible with <a href="https://awaken.tax" className="text-gray-900 font-medium hover:underline">Awaken Tax</a> exports.</p>
       </footer>
     </div>
   );

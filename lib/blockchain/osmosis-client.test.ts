@@ -17,6 +17,11 @@ jest.mock('@cosmjs/stargate', () => ({
   },
 }));
 
+// Mock decodeTxRaw to just pass through our mock objects in tests
+jest.mock('@cosmjs/proto-signing', () => ({
+  decodeTxRaw: jest.fn((tx) => tx),
+}));
+
 describe('OsmosisClient', () => {
   let client: OsmosisClient;
 
@@ -27,11 +32,11 @@ describe('OsmosisClient', () => {
 
   describe('validateAddress', () => {
     it('should validate correct Osmosis addresses', () => {
-      // Valid Osmosis addresses (43 characters: osmo + 39 alphanumeric)
+      // Valid Osmosis addresses (43 characters: osmo1 + 38 alphanumeric)
       const validAddresses = [
-        'osmo1abcdefghijklmnopqrstuvwxyz0123456789',
-        'osmo1234567890abcdefghijklmnopqrstuvwxyz',
-        'osmo1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq0000',
+        'osmo1abcdefghijklmnopqrstuvwxyz012345678912',
+        'osmo1234567890abcdefghijklmnopqrstuvwxyz123',
+        'osmo1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq00',
       ];
 
       validAddresses.forEach(address => {
@@ -54,8 +59,8 @@ describe('OsmosisClient', () => {
     it('should reject addresses with incorrect length', () => {
       const invalidAddresses = [
         'osmo1abc',                                      // Too short
-        'osmo1abcdefghijklmnopqrstuvwxyz01234567890',  // Too long (44 chars)
-        'osmo1abcdefghijklmnopqrstuvwxyz012345678',    // Too short (42 chars)
+        'osmo1abcdefghijklmnopqrstuvwxyz0123456789123',  // Too long (44 chars)
+        'osmo1abcdefghijklmnopqrstuvwxyz01234567891',    // Too short (42 chars)
       ];
 
       invalidAddresses.forEach(address => {
@@ -65,9 +70,9 @@ describe('OsmosisClient', () => {
 
     it('should reject addresses with uppercase characters', () => {
       const invalidAddresses = [
-        'OSMO1abcdefghijklmnopqrstuvwxyz0123456789',   // Uppercase prefix
-        'osmo1ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789',   // Uppercase body
-        'Osmo1abcdefghijklmnopqrstuvwxyz0123456789',   // Mixed case
+        'OSMO1abcdefghijklmnopqrstuvwxyz012345678912',   // Uppercase prefix
+        'osmo1ABCDEFGHIJKLMNOPQRSTUVWXYZ012345678912',   // Uppercase body
+        'Osmo1abcdefghijklmnopqrstuvwxyz012345678912',   // Mixed case
       ];
 
       invalidAddresses.forEach(address => {
@@ -77,10 +82,10 @@ describe('OsmosisClient', () => {
 
     it('should reject addresses with special characters', () => {
       const invalidAddresses = [
-        'osmo1abcdefghijklmnopqrstuvwxyz012345678!',   // Special char
-        'osmo1abcdefghijklmnopqrstuvwxyz012345678@',   // Special char
-        'osmo1abcdefghijklmnopqrstuvwxyz012345678-',   // Hyphen
-        'osmo1abcdefghijklmnopqrstuvwxyz012345678_',   // Underscore
+        'osmo1abcdefghijklmnopqrstuvwxyz01234567891!',   // Special char
+        'osmo1abcdefghijklmnopqrstuvwxyz01234567891@',   // Special char
+        'osmo1abcdefghijklmnopqrstuvwxyz01234567891-',   // Hyphen
+        'osmo1abcdefghijklmnopqrstuvwxyz01234567891_',   // Underscore
       ];
 
       invalidAddresses.forEach(address => {
@@ -171,7 +176,7 @@ describe('OsmosisClient', () => {
 
     it('should throw error if client not initialized', async () => {
       await expect(
-        client.fetchTransactions('osmo1abcdefghijklmnopqrstuvwxyz0123456789')
+        client.fetchTransactions('osmo1abcdefghijklmnopqrstuvwxyz012345678912')
       ).rejects.toThrow('Client not initialized');
     });
 
@@ -209,7 +214,7 @@ describe('OsmosisClient', () => {
       mockClient.searchTx.mockResolvedValue([mockTx]);
 
       const transactions = await client.fetchTransactions(
-        'osmo1abcdefghijklmnopqrstuvwxyz0123456789'
+        'osmo1abcdefghijklmnopqrstuvwxyz012345678912'
       );
 
       expect(transactions).toHaveLength(1);
@@ -253,7 +258,7 @@ describe('OsmosisClient', () => {
         .mockResolvedValueOnce([]);
 
       const transactions = await client.fetchTransactions(
-        'osmo1abcdefghijklmnopqrstuvwxyz0123456789',
+        'osmo1abcdefghijklmnopqrstuvwxyz012345678912',
         { limit: 100 }
       );
 
@@ -287,7 +292,7 @@ describe('OsmosisClient', () => {
       mockClient.searchTx.mockResolvedValue([mockTx]);
 
       const transactions = await client.fetchTransactions(
-        'osmo1abcdefghijklmnopqrstuvwxyz0123456789'
+        'osmo1abcdefghijklmnopqrstuvwxyz012345678912'
       );
 
       expect(transactions[0].status).toBe('failed');
@@ -347,7 +352,7 @@ describe('OsmosisClient', () => {
         mockClient.searchTx.mockResolvedValue([mockTx]);
 
         const transactions = await client.fetchTransactions(
-          'osmo1abcdefghijklmnopqrstuvwxyz0123456789'
+          'osmo1abcdefghijklmnopqrstuvwxyz012345678912'
         );
 
         expect(transactions[0].type).toBe(expectedType);

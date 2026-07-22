@@ -72,15 +72,13 @@ export function ExportButton({
     <motion.button
       onClick={handleExport}
       disabled={isDisabled}
-      className={`
-        relative flex items-center gap-2 px-6 py-3 rounded-lg font-medium
-        transition-all duration-200
-        ${
-          isDisabled
-            ? 'bg-gray-200 dark:bg-gray-800 text-gray-400 dark:text-gray-600 cursor-not-allowed'
-            : 'bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:shadow-lg hover:scale-105'
-        }
-      `}
+      className={`flex items-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all duration-300 ${
+        isDisabled
+          ? 'bg-gray-200 dark:bg-gray-800 text-gray-400 dark:text-gray-600 cursor-not-allowed'
+          : isExporting
+          ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+          : 'bg-[#FF6B00] text-white hover:bg-[#e66000]'
+      }`}
       whileTap={!isDisabled ? { scale: 0.95 } : {}}
     >
       {/* Loading spinner */}

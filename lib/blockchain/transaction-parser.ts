@@ -67,7 +67,16 @@ export class TransactionParser {
       return this.parseMsgVote(firstMsg);
     }
 
-    return { type: 'unknown', amounts: [] };
+    // Extract type from typeUrl if possible
+    let type = 'unknown';
+    if (typeof msgType === 'string' && msgType.includes('.')) {
+      const parts = msgType.split('.');
+      type = parts[parts.length - 1].replace('Msg', '').toLowerCase();
+    } else if (typeof msgType === 'string' && msgType) {
+      type = msgType.replace('Msg', '').toLowerCase();
+    }
+
+    return { type: type as any, amounts: [] };
   }
 
   /**
@@ -337,6 +346,10 @@ export class TransactionParser {
     }
 
     // For unknown tokens, try to extract a symbol from the denom
+    if (denom === 'unknown') {
+      return 'UNKNOWN';
+    }
+
     // Remove 'u' prefix if present (micro units)
     if (denom.startsWith('u')) {
       return denom.slice(1).toUpperCase();

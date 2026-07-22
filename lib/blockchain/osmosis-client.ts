@@ -8,6 +8,7 @@
  */
 
 import { StargateClient } from '@cosmjs/stargate';
+import { decodeTxRaw } from '@cosmjs/proto-signing';
 import type {
   BlockchainClient,
   Transaction,
@@ -28,6 +29,7 @@ export class OsmosisClient implements BlockchainClient {
   private rpcEndpoint: string;
   private client: StargateClient | null = null;
   private parser: TransactionParser;
+  private blockCache: Map<number, Date> = new Map();
 
   /**
    * Create a new OsmosisClient
@@ -64,7 +66,7 @@ export class OsmosisClient implements BlockchainClient {
   validateAddress(address: string): boolean {
     // Osmosis addresses are bech32 format: osmo + 39 alphanumeric characters
     // Total length: 4 (osmo) + 39 = 43 characters
-    const osmosisAddressRegex = /^osmo[a-z0-9]{39}$/;
+    const osmosisAddressRegex = /^osmo1[a-z0-9]{38}$/;
     return osmosisAddressRegex.test(address);
   }
 
@@ -82,7 +84,8 @@ export class OsmosisClient implements BlockchainClient {
    */
   async fetchTransactions(
     address: string,
-    options?: FetchOptions
+    options?: { limit?: number; offset?: number; startDate?: Date; endDate?: Date },
+    onProgress?: (txs: Transaction[]) => void
   ): Promise<Transaction[]> {
     if (!this.client) {
       throw new Error('Client not initialized. Call initialize() first.');
@@ -93,59 +96,73 @@ export class OsmosisClient implements BlockchainClient {
     }
 
     const allTransactions: Transaction[] = [];
-    const limit = options?.limit || 100;
-    let offset = options?.offset || 0;
-    let hasMore = true;
+    const limit = options?.limit || 500;
+    
+    try {
+      const cometClient = (this.client as any).forceGetCometClient();
+      let page = 1;
+      let hasMore = true;
+      let sentTotal = 1;
+      let receivedTotal = 1;
 
-    // Fetch transactions with pagination
-    while (hasMore) {
-      try {
-        // Use CosmJS to search for transactions
-        // Search for both sent and received transactions
-        const txs = await this.client.searchTx([
-          { key: 'message.sender', value: address },
-          { key: 'transfer.recipient', value: address },
-        ], {
-          page: Math.floor(offset / limit) + 1,
-          per_page: limit,
-        });
+      while (hasMore && allTransactions.length < limit) {
+        const [sentRes, receivedRes] = await Promise.all([
+          sentTotal > 0 ? cometClient.txSearch({ query: `message.sender='${address}'`, page, per_page: 50, order_by: "desc" }) : Promise.resolve({ txs: [], totalCount: 0 }),
+          receivedTotal > 0 ? cometClient.txSearch({ query: `transfer.recipient='${address}'`, page, per_page: 50, order_by: "desc" }) : Promise.resolve({ txs: [], totalCount: 0 })
+        ]);
 
-        if (txs.length === 0) {
-          hasMore = false;
+        sentTotal = sentRes.totalCount;
+        receivedTotal = receivedRes.totalCount;
+
+        if (sentRes.txs.length === 0 && receivedRes.txs.length === 0) {
           break;
         }
 
-        // Parse and normalize transactions
-        for (const tx of txs) {
-          const parsedTx = await this.parseTransaction(tx, address);
-          
-          // Apply date filters if provided
-          if (options?.startDate && parsedTx.timestamp < options.startDate) {
-            continue;
+        const formatTx = (tx: any) => ({
+          height: tx.height,
+          hash: Buffer.from(tx.hash).toString('hex').toUpperCase(),
+          code: tx.result.code,
+          tx: tx.tx
+        });
+
+        const newTxs = [...sentRes.txs, ...receivedRes.txs].map(formatTx);
+        
+        // Deduplicate and parse this page
+        const txMap = new Map<string, any>();
+        for (const tx of newTxs) {
+          txMap.set(tx.hash, tx);
+        }
+
+        const uniqueNewTxs = Array.from(txMap.values());
+        
+        // Parse the new transactions
+        for (const tx of uniqueNewTxs) {
+          try {
+            const parsedTx = await this.parseTransaction(tx, address);
+            if (options?.startDate && parsedTx.timestamp < options.startDate) continue;
+            if (options?.endDate && parsedTx.timestamp > options.endDate) continue;
+            
+            allTransactions.push(parsedTx);
+            allTransactions.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+            
+            if (allTransactions.length > limit) {
+              allTransactions.length = limit;
+            }
+
+            // Call onProgress for each transaction parsed so the UI ticks up 1 by 1
+            if (onProgress) {
+              onProgress([...allTransactions]);
+            }
+          } catch (e) {
+            console.error('Error parsing tx:', e);
           }
-          if (options?.endDate && parsedTx.timestamp > options.endDate) {
-            continue;
-          }
-
-          allTransactions.push(parsedTx);
         }
 
-        // Check if we should continue pagination
-        if (txs.length < limit) {
-          hasMore = false;
-        } else {
-          offset += limit;
-        }
-
-        // If a specific limit was requested and we've reached it, stop
-        if (options?.limit && allTransactions.length >= options.limit) {
-          hasMore = false;
-        }
-      } catch (error) {
-        // If we encounter an error during pagination, return what we have
-        console.error('Error fetching transactions:', error);
-        hasMore = false;
+        page++;
+        hasMore = (sentRes.txs.length === 50 || receivedRes.txs.length === 50);
       }
+    } catch (error) {
+      console.error('Error fetching transactions:', error);
     }
 
     return allTransactions;
@@ -161,17 +178,31 @@ export class OsmosisClient implements BlockchainClient {
   private async parseTransaction(tx: any, address: string): Promise<Transaction> {
     // Extract basic transaction info
     const hash = tx.hash;
-    const timestamp = new Date(tx.height * 5000); // Approximate timestamp (5s per block)
+    
+    // Fetch precise block timestamp instead of approximating
+    let timestamp = new Date();
+    if (!this.blockCache.has(tx.height)) {
+      try {
+        const block = await this.client!.getBlock(tx.height);
+        this.blockCache.set(tx.height, new Date(block.header.time));
+      } catch (e) {
+        console.error('Failed to get block time for height', tx.height, e);
+        this.blockCache.set(tx.height, new Date(1624035600000 + (tx.height * 2400))); // fallback to approximation
+      }
+    }
+    timestamp = this.blockCache.get(tx.height)!;
     const status: TransactionStatus = tx.code === 0 ? 'success' : 'failed';
+    
+    const decodedTx = decodeTxRaw(tx.tx);
 
     // Parse transaction type and amounts using TransactionParser
-    const { type, amounts } = this.parser.parseMessages(tx.tx.body.messages, address);
+    const { type, amounts } = this.parser.parseMessages(decodedTx.body.messages, address);
 
     // Parse fee using TransactionParser
-    const fee = this.parser.parseFee(tx.tx.authInfo.fee);
+    const fee = this.parser.parseFee(decodedTx.authInfo.fee);
 
     // Extract memo
-    const memo = tx.tx.body.memo || undefined;
+    const memo = decodedTx.body.memo || undefined;
 
     return {
       hash,
@@ -206,14 +237,16 @@ export class OsmosisClient implements BlockchainClient {
     // Parse basic transaction info
     const basicTx = await this.parseTransaction(tx, '');
 
+    const decodedTx = decodeTxRaw(tx.tx);
+
     // Add detailed information
     return {
       ...basicTx,
       blockHeight: tx.height,
-      gasUsed: tx.gasUsed,
-      gasWanted: tx.gasWanted,
+      gasUsed: Number(tx.gasUsed),
+      gasWanted: Number(tx.gasWanted),
       rawLog: tx.rawLog,
-      messages: tx.tx.body.messages,
+      messages: decodedTx.body.messages as any[],
     };
   }
 

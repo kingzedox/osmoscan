@@ -108,20 +108,18 @@ export function WalletTracker({
             className="fixed right-0 top-0 h-full w-full max-w-md bg-white dark:bg-gray-950 shadow-2xl z-50 overflow-hidden"
           >
             {/* Header */}
-            <div className="glass border-b border-gray-200 dark:border-gray-800 p-6">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg">
-                    <Wallet className="w-5 h-5 text-white" />
-                  </div>
-                  <div>
-                    <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-50">
-                      Saved Wallets
-                    </h2>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                      {wallets.length} {wallets.length === 1 ? 'wallet' : 'wallets'} saved
-                    </p>
-                  </div>
+            <div className="bg-white shadow-sm border-b border-gray-200 p-6">
+              <div className="flex items-center gap-4">
+                <div className="p-2 bg-[#FF6B00] text-white rounded-lg">
+                  <Wallet className="w-5 h-5 text-white" />
+                </div>
+                <div className="flex-1">
+                  <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-50">
+                    Saved Wallets
+                  </h2>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    {wallets.length} {wallets.length === 1 ? 'wallet' : 'wallets'} saved
+                  </p>
                 </div>
                 <button
                   onClick={onClose}
@@ -153,11 +151,11 @@ export function WalletTracker({
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     className={`
-                      glass p-4 rounded-lg border transition-all
+                      bg-white p-4 rounded-lg border transition-all
                       ${
                         currentAddress === wallet.address
-                          ? 'border-purple-500 bg-purple-50 dark:bg-purple-950/20'
-                          : 'border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700'
+                          ? 'border-[#FF6B00] shadow-sm'
+                          : 'border-gray-200 hover:border-gray-300'
                       }
                     `}
                   >

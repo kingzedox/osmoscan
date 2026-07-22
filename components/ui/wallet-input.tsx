@@ -117,14 +117,14 @@ export function WalletInput({
           placeholder={placeholder}
           autoFocus={autoFocus}
           className={cn(
-            'w-full px-6 py-4 pr-24 rounded-2xl font-mono text-sm',
-            'bg-background/50 backdrop-blur-xl',
-            'border-2 transition-all duration-300',
+            'w-full px-6 py-4 pr-24 rounded-xl font-mono text-sm text-[#111111]',
+            'bg-white shadow-sm',
+            'border border-gray-200 transition-all duration-300',
             'focus:outline-none focus:ring-2 focus:ring-offset-2',
-            'placeholder:text-muted-foreground/50',
+            'placeholder:text-gray-400',
             validationState === 'valid' && 'border-green-500/50 focus:border-green-500 focus:ring-green-500/20',
-            validationState === 'invalid' && 'border-destructive/50 focus:border-destructive focus:ring-destructive/20',
-            (validationState === 'idle' || validationState === 'validating') && 'border-border focus:border-primary focus:ring-primary/20'
+            validationState === 'invalid' && 'border-red-500/50 focus:border-red-500 focus:ring-red-500/20',
+            (validationState === 'idle' || validationState === 'validating') && 'focus:border-[#FF6B00] focus:ring-[#FF6B00]/20'
           )}
         />
 
@@ -138,9 +138,9 @@ export function WalletInput({
             type="button"
             onClick={handlePaste}
             className={cn(
-              'p-2 rounded-lg transition-all duration-200',
-              'hover:bg-accent hover:text-accent-foreground',
-              'focus:outline-none focus:ring-2 focus:ring-primary/20'
+              'p-2 rounded-lg transition-all duration-200 text-gray-400',
+              'hover:bg-gray-100 hover:text-gray-700',
+              'focus:outline-none focus:ring-2 focus:ring-[#FF6B00]/20'
             )}
             title="Paste from clipboard"
           >

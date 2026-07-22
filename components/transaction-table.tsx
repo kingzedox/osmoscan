@@ -29,6 +29,8 @@ export function TransactionTable({
 }: TransactionTableProps) {
   const [sortField, setSortField] = useState<SortField>('timestamp');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   // Sort transactions
   const sortedTransactions = useMemo(() => {
@@ -65,6 +67,7 @@ export function TransactionTable({
       setSortField(field);
       setSortDirection('desc');
     }
+    setCurrentPage(1); // Reset to page 1 on sort
   };
 
   const handleTransactionClick = (hash: string) => {
@@ -72,13 +75,20 @@ export function TransactionTable({
       onTransactionClick(hash);
     } else {
       // Default: open in block explorer
-      window.open(`https://www.mintscan.io/osmosis/txs/${hash}`, '_blank');
+      window.open(`https://atomscan.com/osmosis/transactions/${hash}`, '_blank');
     }
   };
 
+  // Pagination logic
+  const totalPages = Math.ceil(sortedTransactions.length / itemsPerPage);
+  const paginatedTransactions = sortedTransactions.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
   if (transactions.length === 0) {
     return (
-      <div className="glass rounded-lg border border-border/50 p-12 text-center">
+      <div className="bg-white shadow-sm rounded-lg border border-gray-200 p-12 text-center">
         <p className="text-muted-foreground">
           No transactions found for this wallet address.
         </p>
@@ -89,7 +99,7 @@ export function TransactionTable({
   return (
     <div className="w-full">
       {/* Desktop Table */}
-      <div className="hidden md:block glass rounded-lg border border-border/50 overflow-hidden">
+      <div className="hidden md:block bg-white shadow-sm rounded-lg border border-gray-200 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-muted/50 sticky top-0 backdrop-blur-xl">
@@ -136,7 +146,7 @@ export function TransactionTable({
               </tr>
             </thead>
             <tbody>
-              {sortedTransactions.map((tx, index) => (
+              {paginatedTransactions.map((tx, index) => (
                 <motion.tr
                   key={tx.hash}
                   initial={{ opacity: 0, y: 20 }}
@@ -206,13 +216,13 @@ export function TransactionTable({
 
       {/* Mobile Cards */}
       <div className="md:hidden space-y-4">
-        {sortedTransactions.map((tx, index) => (
+        {paginatedTransactions.map((tx, index) => (
           <motion.div
             key={tx.hash}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.02, duration: 0.3 }}
-            className="glass rounded-lg border border-border/50 p-4 cursor-pointer hover:border-primary/50 transition-colors"
+            className="bg-white shadow-sm rounded-lg border border-gray-200 p-4 cursor-pointer hover:border-gray-300 transition-colors"
             onClick={() => handleTransactionClick(tx.hash)}
           >
             <div className="flex items-start justify-between mb-3">
@@ -271,6 +281,70 @@ export function TransactionTable({
           </motion.div>
         ))}
       </div>
+
+      {/* Pagination Controls */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between mt-4 px-4 py-3 bg-white border border-gray-200 rounded-lg shadow-sm sm:px-6">
+          <div className="flex justify-between flex-1 sm:hidden">
+            <button
+              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+              className="relative inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Previous
+            </button>
+            <button
+              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+              disabled={currentPage === totalPages}
+              className="relative inline-flex items-center px-4 py-2 ml-3 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Next
+            </button>
+          </div>
+          <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+            <div>
+              <p className="text-sm text-gray-700">
+                Showing <span className="font-medium">{(currentPage - 1) * itemsPerPage + 1}</span> to <span className="font-medium">{Math.min(currentPage * itemsPerPage, sortedTransactions.length)}</span> of{' '}
+                <span className="font-medium">{sortedTransactions.length}</span> results
+              </p>
+            </div>
+            <div>
+              <nav className="inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
+                <button
+                  onClick={() => setCurrentPage(1)}
+                  disabled={currentPage === 1}
+                  className="relative inline-flex items-center px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-l-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  title="First Page"
+                >
+                  &laquo;
+                </button>
+                <button
+                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1}
+                  className="relative inline-flex items-center px-4 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Previous
+                </button>
+                <button
+                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                  disabled={currentPage === totalPages}
+                  className="relative inline-flex items-center px-4 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Next
+                </button>
+                <button
+                  onClick={() => setCurrentPage(totalPages)}
+                  disabled={currentPage === totalPages}
+                  className="relative inline-flex items-center px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-r-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  title="Last Page"
+                >
+                  &raquo;
+                </button>
+              </nav>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
