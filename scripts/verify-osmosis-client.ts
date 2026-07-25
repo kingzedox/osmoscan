@@ -5,7 +5,7 @@
  * without requiring the full test suite to run.
  */
 
-import { OsmosisClient } from './lib/blockchain/osmosis-client';
+import { OsmosisClient } from '../lib/blockchain/osmosis-client';
 
 async function verify() {
   console.log('🔍 Verifying OsmosisClient implementation...\n');
